@@ -4,6 +4,7 @@ $LOADED_FEATURES << "active_record/connection_adapters/postgresql_adapter.rb"
 ActiveRecord::ConnectionMethods.module_eval do
   def postgresql_connection(config)
     require "arjdbc/postgresql"
+    config[:username] ||= Java::JavaLang::System.get_property("user.name")
     config[:host] ||= "localhost"
     config[:port] ||= 5432
     config[:url] ||= "jdbc:postgresql://#{config[:host]}:#{config[:port]}/#{config[:database]}"
