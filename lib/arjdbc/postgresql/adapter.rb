@@ -298,15 +298,11 @@ module ::ArJdbc
     end
 
     def enable_extension(name)
-      exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
-        reload_type_map
-      }
+      exec_query("CREATE EXTENSION IF NOT EXISTS #{name}")
     end
 
     def disable_extension(name)
-      exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
-        reload_type_map
-      }
+      exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE")
     end
 
     def extension_enabled?(name)
