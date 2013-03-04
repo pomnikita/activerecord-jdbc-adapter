@@ -964,7 +964,19 @@ module ActiveRecord::ConnectionAdapters
   class PostgreSQLAdapter < JdbcAdapter
     include ArJdbc::PostgreSQL
 
+    module ColumnMethods
+      %w{xml tsvector int4range int8range tsrange tstzrange numrange daterange hstore ltree inet cidr macaddr uuid json}.each do |type|
+        define_method type do |*args|
+          options = args.extract_options!
+          column(args[0], type, options)
+        end
+      end
+    end
+
     class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+
+      include ColumnMethods
+
       def xml(*args)
         options = args.extract_options!
         column(args[0], "xml", options)
@@ -976,8 +988,16 @@ module ActiveRecord::ConnectionAdapters
       end
     end
 
-    def table_definition
+    class Table < ActiveRecord::ConnectionAdapters::Table
+      include ColumnMethods
+    end
+
+    def create_table_definition
       TableDefinition.new(self)
+    end
+
+    def update_table_definition(table_name, base)
+      Table.new(table_name, base)
     end
 
     def jdbc_connection_class(spec)
