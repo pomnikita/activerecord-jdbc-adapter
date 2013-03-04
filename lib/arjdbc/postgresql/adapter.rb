@@ -272,14 +272,14 @@ module ::ArJdbc
       if supports_extensions?
         res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
           'SCHEMA'
-        res.column_types['exists'].type_cast res.rows.first.first
+        ConnectionAdapters::Column.value_to_boolean res.to_a.first.first
       end
     end
 
     def extensions
       if supports_extensions?
         res = exec_query "SELECT extname from pg_extension", "SCHEMA"
-        res.rows.map { |r| res.column_types['extname'].type_cast r.first }
+        res.to_a.map { |r| r.first }
       else
         super
       end
