@@ -657,9 +657,37 @@ module ::ArJdbc
       return super unless column
 
       case value
+      when Range
+        if /range$/ =~ column.sql_type
+          "'#{ActiveRecord::ConnectionAdapters::PostgreSQLColumn.range_to_string(value)}'::#{column.sql_type}"
+        else
+          super
+        end
+      when Array
+        if column.array
+          "'#{ActiveRecord::ConnectionAdapters::PostgreSQLColumn.array_to_string(value, column, self)}'"
+        else
+          super
+        end
+      when Hash
+        case column.sql_type
+        when 'hstore' then super(ActiveRecord::ConnectionAdapters::PostgreSQLColumn.hstore_to_string(value), column)
+        when 'json' then super(ActiveRecord::ConnectionAdapters::PostgreSQLColumn.json_to_string(value), column)
+        else super
+        end
+      when IPAddr
+        case column.sql_type
+        when 'inet', 'cidr' then super(ActiveRecord::ConnectionAdapters::PostgreSQLColumn.cidr_to_string(value), column)
+        else super
+        end
       when Float
-        return super unless value.infinite? && column.type == :datetime
-        "'#{value.to_s.downcase}'"
+        if value.infinite? && column.type == :datetime
+          "'#{value.to_s.downcase}'"
+        elsif value.infinite? || value.nan?
+          "'#{value.to_s}'"
+        else
+          super
+        end
       when Numeric
         return super unless column.sql_type == 'money'
         # Not truly string input, so doesn't require (or allow) escape string syntax.
@@ -932,6 +960,12 @@ module ActiveRecord::ConnectionAdapters
 
   class PostgreSQLColumn < JdbcColumn
     include ArJdbc::PostgreSQL::Column
+
+    class << self
+      include ActiveRecord::ConnectionAdapters::PostgreSQLColumn::Cast
+      include ActiveRecord::ConnectionAdapters::PostgreSQLColumn::ArrayParser
+      attr_accessor :money_precision
+    end
 
     def initialize(name, *args)
       if Hash === name

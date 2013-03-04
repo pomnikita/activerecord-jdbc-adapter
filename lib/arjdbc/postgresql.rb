@@ -1,4 +1,6 @@
 require 'arjdbc/jdbc'
 jdbc_require_driver 'jdbc/postgres'
 require 'arjdbc/postgresql/connection_methods'
+require 'arjdbc/postgresql/cast'
+require 'arjdbc/postgresql/array_parser'
 require 'arjdbc/postgresql/adapter'
