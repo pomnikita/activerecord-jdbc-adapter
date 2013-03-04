@@ -37,6 +37,23 @@ module ::ArJdbc
         end
       end
 
+      def type_cast(value)
+        return nil if value.nil?
+        case type
+        when :hstore then ActiveRecord::ConnectionAdapters::PostgreSQLColumn.string_to_hstore(value)
+        else
+          super
+        end
+      end
+
+      def type_cast_code(var_name)
+        case type
+        when :hstore  then "ActiveRecord::ConnectionAdapters::PostgreSQLColumn.string_to_hstore(#{var_name})"
+        else
+          super
+        end
+      end
+
       private
       # Extracts the value from a Postgresql column default definition
       def default_value(default)
