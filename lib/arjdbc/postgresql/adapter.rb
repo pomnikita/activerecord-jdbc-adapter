@@ -247,6 +247,44 @@ module ::ArJdbc
       execute("RELEASE SAVEPOINT #{current_savepoint_name}")
     end
 
+    def supports_extensions?
+      postgresql_version >= 90200
+    end
+
+    # Range datatypes weren't introduced until PostgreSQL 9.2
+    def supports_ranges?
+      postgresql_version >= 90200
+    end
+
+    def enable_extension(name)
+      exec_query("CREATE EXTENSION IF NOT EXISTS #{name}").tap {
+        reload_type_map
+      }
+    end
+
+    def disable_extension(name)
+      exec_query("DROP EXTENSION IF EXISTS #{name} CASCADE").tap {
+        reload_type_map
+      }
+    end
+
+    def extension_enabled?(name)
+      if supports_extensions?
+        res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL)",
+          'SCHEMA'
+        res.column_types['exists'].type_cast res.rows.first.first
+      end
+    end
+
+    def extensions
+      if supports_extensions?
+        res = exec_query "SELECT extname from pg_extension", "SCHEMA"
+        res.rows.map { |r| res.column_types['extname'].type_cast r.first }
+      else
+        super
+      end
+    end
+
     # Returns the configured supported identifier length supported by PostgreSQL,
     # or report the default of 63 on PostgreSQL 7.x.
     def table_alias_length
@@ -725,7 +763,7 @@ module ::ArJdbc
       when 1, 2; 'smallint'
       when 3, 4; 'integer'
       when 5..8; 'bigint'
-      else 
+      else
         raise(::ActiveRecord::ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
       end
     end
