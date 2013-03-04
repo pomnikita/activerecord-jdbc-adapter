@@ -122,36 +122,64 @@ module ::ArJdbc
       # Maps PostgreSQL-specific data types to logical Rails types.
       def simplified_type(field_type)
         case field_type
-          # Numeric and monetary types
-        when /^(?:real|double precision)$/ then :float
-          # Monetary types
-        when 'money' then :decimal
-          # Character types
-        when /^(?:character varying|bpchar)(?:\(\d+\))?$/ then :string
-          # Binary data types
-        when 'bytea' then :binary
-          # Date/time types
-        when /^timestamp with(?:out)? time zone$/ then :datetime
-        when 'interval' then :string
-          # Geometric types
-        when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/ then :string
-          # Network address types
-        when /^(?:cidr|inet|macaddr)$/ then :string
-          # Bit strings
-        when /^bit(?: varying)?(?:\(\d+\))?$/ then :string
-          # XML type
-        when 'xml' then :xml
-          # tsvector type
-        when 'tsvector' then :tsvector
-          # Arrays
-        when /^\D+\[\]$/ then :string
-          # Object identifier types
-        when 'oid' then :integer
-          # UUID type
-        when 'uuid' then :string
-          # Small and big integer types
-        when /^(?:small|big)int$/ then :integer
-          # Pass through all types that are not specific to PostgreSQL.
+        # Numeric and monetary types
+        when /^(?:real|double precision)$/
+          :float
+        # Monetary types
+        when 'money'
+          :decimal
+        when 'hstore'
+          :hstore
+        when 'ltree'
+          :ltree
+        # Network address types
+        when 'inet'
+          :inet
+        when 'cidr'
+          :cidr
+        when 'macaddr'
+          :macaddr
+        # Character types
+        when /^(?:character varying|bpchar)(?:\(\d+\))?$/
+          :string
+        # Binary data types
+        when 'bytea'
+          :binary
+        # Date/time types
+        when /^timestamp with(?:out)? time zone$/
+          :datetime
+        when /^interval(?:|\(\d+\))$/
+          :string
+        # Geometric types
+        when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
+          :string
+        # Bit strings
+        when /^bit(?: varying)?(?:\(\d+\))?$/
+          :string
+        # XML type
+        when 'xml'
+          :xml
+        # tsvector type
+        when 'tsvector'
+          :tsvector
+        # Arrays
+        when /^\D+\[\]$/
+          :string
+        # Object identifier types
+        when 'oid'
+          :integer
+        # UUID type
+        when 'uuid'
+          :uuid
+        # JSON type
+        when 'json'
+          :json
+        # Small and big integer types
+        when /^(?:small|big)int$/
+          :integer
+        when /(num|date|tstz|ts|int4|int8)range$/
+          field_type.to_sym
+        # Pass through all types that are not specific to PostgreSQL.
         else
           super
         end
