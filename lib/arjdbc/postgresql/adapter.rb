@@ -332,8 +332,8 @@ module ::ArJdbc
 
     def extensions
       if supports_extensions?
-        res = exec_query "SELECT extname from pg_extension", "SCHEMA"
-        res.to_a.map { |r| r.first }
+        res = exec_query "SELECT extname FROM pg_extension", "SCHEMA"
+        res.to_a.map { |r| r['extname'] }
       else
         super
       end
