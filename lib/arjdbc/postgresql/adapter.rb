@@ -1039,8 +1039,8 @@ module ActiveRecord::ConnectionAdapters
       include ColumnMethods
     end
 
-    def create_table_definition
-      TableDefinition.new(self)
+    def create_table_definition(name, temporary, options)
+      TableDefinition.new(Hash.new, name, temporary, options)
     end
 
     def update_table_definition(table_name, base)
