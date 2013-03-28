@@ -260,6 +260,10 @@ module ::ArJdbc
       NATIVE_DATABASE_TYPES
     end
 
+    def valid_type?(type)
+      NATIVE_DATABASE_TYPES.include? type
+    end
+
     # Does PostgreSQL support migrations?
     def supports_migrations?
       true
@@ -1040,7 +1044,7 @@ module ActiveRecord::ConnectionAdapters
     end
 
     def create_table_definition(name, temporary, options)
-      TableDefinition.new(Hash.new, name, temporary, options)
+      TableDefinition.new(native_database_types, name, temporary, options)
     end
 
     def update_table_definition(table_name, base)
